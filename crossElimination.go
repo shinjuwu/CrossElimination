@@ -31,9 +31,11 @@ var directArrays = [4][2]int{
 	{1, 0},
 }
 var board = [5][5]int{}
-var test = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 33, 33, 33, 16, 17, 18, 19, 20, 34, 34, 34, 24, 25}
-var matchCards = []cardPos{}
+var test = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 77, 77, 77, 16, 17, 18, 19, 99, 99, 99, 99, 24, 25}
+var matchX = []cardPos{}
+var matchY = []cardPos{}
 var matchedCardBoard = [5][5]int{}
+var destoryCard = []int{}
 
 //var matchCard int
 
@@ -61,9 +63,11 @@ func scanBoard() [][]cardPos {
 			}
 			if !isMatched(card) {
 				triggerPoint(card)
-				if len(matchCards) >= 3 {
-					saveMatchedCardBoard(board[card.posX][card.posY], card)
-					res = append(res, matchCards)
+				if len(matchX) >= 3 {
+					res = append(res, matchX)
+				}
+				if len(matchY) >= 3 {
+					res = append(res, matchY)
 				}
 				fmt.Println(matchedCardBoard)
 			}
@@ -93,10 +97,12 @@ func triggerPoint(card cardPos) {
 	fmt.Println("=========================")
 	transferCardsToBoard()
 	fmt.Println("Trigger Point:", card)
-	matchCards = []cardPos{}
+	matchX = []cardPos{}
+	matchY = []cardPos{}
 	matchCard := board[card.posX][card.posY]
 	fmt.Println("MatchCard:", matchCard)
-	saveCards(card)
+	matchX = append(matchX, card)
+	matchY = append(matchY, card)
 	for i := 0; i < len(directArrays); i++ {
 		direct := directArrays[i]
 		nextCardPos := cardPos{
@@ -105,7 +111,10 @@ func triggerPoint(card cardPos) {
 		}
 		nextPoint(matchCard, nextCardPos, direct)
 	}
-	fmt.Println(matchCards)
+	createMatchedCardBoard(matchCard)
+
+	fmt.Println("matchX: ", matchX)
+	fmt.Println("matchY: ", matchY)
 }
 
 func nextPoint(matchCard int, card cardPos, direct [2]int) {
@@ -116,8 +125,7 @@ func nextPoint(matchCard int, card cardPos, direct [2]int) {
 		return
 	}
 
-	saveCards(card)
-	saveMatchedCardBoard(matchCard, card)
+	saveCards(card, direct)
 	nextCard := cardPos{
 		posX: card.posX + direct[0],
 		posY: card.posY + direct[1],
@@ -126,12 +134,26 @@ func nextPoint(matchCard int, card cardPos, direct [2]int) {
 	nextPoint(matchCard, nextCard, direct)
 }
 
-func saveCards(card cardPos) {
-	matchCards = append(matchCards, card)
+func saveCards(card cardPos, direct [2]int) {
+	if direct[0] == 0 {
+		matchY = append(matchY, card)
+	} else {
+		matchX = append(matchX, card)
+	}
 }
 
-func saveMatchedCardBoard(matchCard int, card cardPos) {
-	matchedCardBoard[card.posX][card.posY] = matchCard
+func createMatchedCardBoard(matchCard int) {
+	if len(matchX) >= 3 {
+		for _, v := range matchX {
+			matchedCardBoard[v.posX][v.posY] = matchCard
+		}
+	}
+
+	if len(matchY) >= 3 {
+		for _, v := range matchY {
+			matchedCardBoard[v.posX][v.posY] = matchCard
+		}
+	}
 }
 
 func isMatched(card cardPos) bool {
@@ -139,4 +161,49 @@ func isMatched(card cardPos) bool {
 		return true
 	}
 	return false
+}
+
+func elimination() {
+	matchedLine := scanBoard()
+	if len(matchedLine) == 0 {
+		return
+	}
+	starsPatternNum := createStars(matchedLine)
+	destoryCardPatternNum := createDestoryCards(matchedLine)
+
+	updateBordList(destoryCardPatternNum, starsPatternNum)
+}
+
+func createDestoryCards(matchedLine [][]cardPos) []int {
+	res := []int{}
+	for _, line := range matchedLine {
+		for _, pos := range line {
+			destoryCardsPatternNum := gamePattern[pos.posX][pos.posY]
+			res = append(res, destoryCardsPatternNum)
+		}
+	}
+
+	return res
+}
+
+func createStars(matchedLine [][]cardPos) []int {
+	res := []int{}
+	for _, line := range matchedLine {
+		for key, pos := range line {
+			index := len(line) / 2
+			if key == index {
+				starCardPos := pos
+				cardPatternNum := gamePattern[starCardPos.posX][starCardPos.posY]
+				res = append(res, cardPatternNum)
+			}
+
+		}
+	}
+	return res
+}
+
+func updateBordList(destorys []int, stars []int) []int {
+	for _, pos := range destorys {
+
+	}
 }
