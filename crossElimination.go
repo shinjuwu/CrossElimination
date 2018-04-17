@@ -12,8 +12,8 @@ type EliminationTask struct {
 }
 
 type cardPos struct {
-	positionX int
-	positionY int
+	posX int
+	posY int
 }
 
 var gamePattern = [][]int{
@@ -31,8 +31,11 @@ var directArrays = [4][2]int{
 	{1, 0},
 }
 var board = [5][5]int{}
-var test = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 1, 1, 1, 1, 1}
+var test = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 33, 33, 33, 16, 17, 18, 19, 20, 34, 34, 34, 24, 25}
 var matchCards = []cardPos{}
+var matchedCardBoard = [5][5]int{}
+
+//var matchCard int
 
 //New is use for create a elimination task
 func New(initCards *list.List) *EliminationTask {
@@ -47,13 +50,26 @@ func (et *EliminationTask) transferCardsToBoard() {
 
 }
 
-func eliminate() map[cardPos][]cardPos {
-	res := map[cardPos][]cardPos{}
+func scanBoard() [][]cardPos {
+	res := [][]cardPos{}
+	matchedCardBoard = [5][5]int{}
 	for k, v := range board {
 		for k1 := range v {
-			triggerPoint(k, k1)
+			card := cardPos{
+				posX: k,
+				posY: k1,
+			}
+			if !isMatched(card) {
+				triggerPoint(card)
+				if len(matchCards) >= 3 {
+					saveMatchedCardBoard(board[card.posX][card.posY], card)
+					res = append(res, matchCards)
+				}
+				fmt.Println(matchedCardBoard)
+			}
 		}
 	}
+	fmt.Println("res:", res)
 	return res
 }
 
@@ -73,32 +89,38 @@ func transferCardsToBoard() {
 	}
 }
 
-func triggerPoint(x int, y int) {
+func triggerPoint(card cardPos) {
+	fmt.Println("=========================")
 	transferCardsToBoard()
+	fmt.Println("Trigger Point:", card)
+	matchCards = []cardPos{}
+	matchCard := board[card.posX][card.posY]
+	fmt.Println("MatchCard:", matchCard)
+	saveCards(card)
 	for i := 0; i < len(directArrays); i++ {
 		direct := directArrays[i]
 		nextCardPos := cardPos{
-			positionX: x + direct[0],
-			positionY: y + direct[1],
+			posX: card.posX + direct[0],
+			posY: card.posY + direct[1],
 		}
-		matchCard := board[x][y]
-
 		nextPoint(matchCard, nextCardPos, direct)
 	}
 	fmt.Println(matchCards)
 }
 
-func nextPoint(matchCard int, cardPosition cardPos, direct [2]int) {
-	if cardPosition.positionX < 0 || cardPosition.positionX == len(board) ||
-		cardPosition.positionY < 0 || cardPosition.positionY == len(board[0]) ||
-		board[cardPosition.positionX][cardPosition.positionY] != matchCard {
+func nextPoint(matchCard int, card cardPos, direct [2]int) {
+	if card.posX < 0 || card.posX == len(board) ||
+		card.posY < 0 || card.posY == len(board[0]) ||
+		board[card.posX][card.posY] != matchCard {
+		fmt.Println("Return Point:", card)
 		return
 	}
 
-	saveCards(cardPosition)
+	saveCards(card)
+	saveMatchedCardBoard(matchCard, card)
 	nextCard := cardPos{
-		positionX: cardPosition.positionX + direct[0],
-		positionY: cardPosition.positionY + direct[1],
+		posX: card.posX + direct[0],
+		posY: card.posY + direct[1],
 	}
 
 	nextPoint(matchCard, nextCard, direct)
@@ -106,4 +128,15 @@ func nextPoint(matchCard int, cardPosition cardPos, direct [2]int) {
 
 func saveCards(card cardPos) {
 	matchCards = append(matchCards, card)
+}
+
+func saveMatchedCardBoard(matchCard int, card cardPos) {
+	matchedCardBoard[card.posX][card.posY] = matchCard
+}
+
+func isMatched(card cardPos) bool {
+	if matchedCardBoard[card.posX][card.posY] != 0 {
+		return true
+	}
+	return false
 }

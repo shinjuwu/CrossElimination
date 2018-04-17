@@ -1,6 +1,7 @@
 package elimination
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -20,19 +21,39 @@ func Test_transferCardsToBoard(t *testing.T) {
 
 func Test_triggerPoint(t *testing.T) {
 	type args struct {
-		x int
-		y int
+		ca cardPos
+	}
+	ca := cardPos{
+		posX: 0,
+		posY: 0,
 	}
 	tests := []struct {
 		name string
 		args args
 	}{
 		// TODO: Add test cases.
-		{"case1", args{0, 0}},
+		{"case1", args{ca}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			triggerPoint(tt.args.x, tt.args.y)
+			triggerPoint(tt.args.ca)
+		})
+	}
+}
+
+func Test_scanBoard(t *testing.T) {
+	tests := []struct {
+		name string
+		want [][]cardPos
+	}{
+		// TODO: Add test cases.
+		{"case1", nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := scanBoard(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("scanBoard() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }
