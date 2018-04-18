@@ -188,8 +188,12 @@ func elimination() {
 func createDestoryCards(matchedLine [][]node) []int {
 	res := []int{}
 	for _, line := range matchedLine {
-		for _, pos := range line {
-			destoryCardsPatternNum := gamePattern[pos.posX][pos.posY]
+		for _, v := range line {
+			if v.symbol == 100 {
+				starDestory := getStarDestoryCards(v)
+				res = append(res, starDestory...)
+			}
+			destoryCardsPatternNum := gamePattern[v.posX][v.posY]
 			res = append(res, destoryCardsPatternNum)
 		}
 	}
@@ -239,6 +243,16 @@ func deleteDestoryCards() []int {
 		if v != -1 {
 			res = append(res, v)
 		}
+	}
+	return res
+}
+
+func getStarDestoryCards(card node) []int {
+	res := []int{}
+	for i := 0; i < len(directArrays); i++ {
+		direct := directArrays[i]
+		nextCardPatternNum := gamePattern[card.posX+direct[0]][card.posY+direct[1]]
+		res = append(res, nextCardPatternNum)
 	}
 	return res
 }
