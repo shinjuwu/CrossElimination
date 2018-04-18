@@ -11,9 +11,10 @@ type EliminationTask struct {
 	cards *list.List
 }
 
-type cardPos struct {
-	posX int
-	posY int
+type node struct {
+	symbol int
+	posX   int
+	posY   int
 }
 
 var gamePattern = [][]int{
@@ -31,9 +32,9 @@ var directArrays = [4][2]int{
 	{1, 0},
 }
 var board = [5][5]int{}
-var test = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 77, 77, 77, 16, 17, 18, 19, 99, 99, 99, 99, 24, 25}
-var matchX = []cardPos{}
-var matchY = []cardPos{}
+var test = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 44, 44, 100, 20, 23, 100, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40}
+var matchX = []node{}
+var matchY = []node{}
 var matchedCardBoard = [5][5]int{}
 var destoryCard = []int{}
 
@@ -52,12 +53,12 @@ func (et *EliminationTask) transferCardsToBoard() {
 
 }
 
-func scanBoard() [][]cardPos {
-	res := [][]cardPos{}
+func scanBoard() [][]node {
+	res := [][]node{}
 	matchedCardBoard = [5][5]int{}
 	for k, v := range board {
 		for k1 := range v {
-			card := cardPos{
+			card := node{
 				posX: k,
 				posY: k1,
 			}
@@ -93,48 +94,56 @@ func transferCardsToBoard() {
 	}
 }
 
-func triggerPoint(card cardPos) {
+func triggerPoint(card node) {
 	fmt.Println("=========================")
 	transferCardsToBoard()
 	fmt.Println("Trigger Point:", card)
-	matchX = []cardPos{}
-	matchY = []cardPos{}
-	matchCard := board[card.posX][card.posY]
-	fmt.Println("MatchCard:", matchCard)
+	matchX = []node{}
+	matchY = []node{}
+	card.symbol = board[card.posX][card.posY]
+	fmt.Println("MatchCard:", card.symbol)
 	matchX = append(matchX, card)
 	matchY = append(matchY, card)
 	for i := 0; i < len(directArrays); i++ {
 		direct := directArrays[i]
-		nextCardPos := cardPos{
-			posX: card.posX + direct[0],
-			posY: card.posY + direct[1],
+		nextCard := node{
+			symbol: card.symbol,
+			posX:   card.posX + direct[0],
+			posY:   card.posY + direct[1],
 		}
-		nextPoint(matchCard, nextCardPos, direct)
+		nextPoint(nextCard, direct)
 	}
-	createMatchedCardBoard(matchCard)
+	createMatchedCardBoard()
 
 	fmt.Println("matchX: ", matchX)
 	fmt.Println("matchY: ", matchY)
 }
 
-func nextPoint(matchCard int, card cardPos, direct [2]int) {
+func nextPoint(card node, direct [2]int) {
 	if card.posX < 0 || card.posX == len(board) ||
-		card.posY < 0 || card.posY == len(board[0]) ||
-		board[card.posX][card.posY] != matchCard {
+		card.posY < 0 || card.posY == len(board[0]) {
 		fmt.Println("Return Point:", card)
 		return
 	}
-
-	saveCards(card, direct)
-	nextCard := cardPos{
-		posX: card.posX + direct[0],
-		posY: card.posY + direct[1],
+	if board[card.posX][card.posY] != 100 && board[card.posX][card.posY] != card.symbol {
+		fmt.Println("Return Point:", card)
+		return
+	}
+	if board[card.posX][card.posY] == 100 {
+		saveCards(node{symbol: 100, posX: card.posX, posY: card.posY}, direct)
+	} else {
+		saveCards(card, direct)
 	}
 
-	nextPoint(matchCard, nextCard, direct)
+	nextCard := node{
+		symbol: card.symbol,
+		posX:   card.posX + direct[0],
+		posY:   card.posY + direct[1],
+	}
+	nextPoint(nextCard, direct)
 }
 
-func saveCards(card cardPos, direct [2]int) {
+func saveCards(card node, direct [2]int) {
 	if direct[0] == 0 {
 		matchY = append(matchY, card)
 	} else {
@@ -142,21 +151,21 @@ func saveCards(card cardPos, direct [2]int) {
 	}
 }
 
-func createMatchedCardBoard(matchCard int) {
+func createMatchedCardBoard() {
 	if len(matchX) >= 3 {
 		for _, v := range matchX {
-			matchedCardBoard[v.posX][v.posY] = matchCard
+			matchedCardBoard[v.posX][v.posY] = v.symbol
 		}
 	}
 
 	if len(matchY) >= 3 {
 		for _, v := range matchY {
-			matchedCardBoard[v.posX][v.posY] = matchCard
+			matchedCardBoard[v.posX][v.posY] = v.symbol
 		}
 	}
 }
 
-func isMatched(card cardPos) bool {
+func isMatched(card node) bool {
 	if matchedCardBoard[card.posX][card.posY] != 0 {
 		return true
 	}
@@ -170,11 +179,13 @@ func elimination() {
 	}
 	starsPatternNum := createStars(matchedLine)
 	destoryCardPatternNum := createDestoryCards(matchedLine)
-
+	fmt.Println("stars pos:", starsPatternNum)
+	fmt.Println("destroy pos:", destoryCardPatternNum)
 	updateBordList(destoryCardPatternNum, starsPatternNum)
+	fmt.Println(test)
 }
 
-func createDestoryCards(matchedLine [][]cardPos) []int {
+func createDestoryCards(matchedLine [][]node) []int {
 	res := []int{}
 	for _, line := range matchedLine {
 		for _, pos := range line {
@@ -186,7 +197,7 @@ func createDestoryCards(matchedLine [][]cardPos) []int {
 	return res
 }
 
-func createStars(matchedLine [][]cardPos) []int {
+func createStars(matchedLine [][]node) []int {
 	res := []int{}
 	for _, line := range matchedLine {
 		for key, pos := range line {
@@ -203,7 +214,31 @@ func createStars(matchedLine [][]cardPos) []int {
 }
 
 func updateBordList(destorys []int, stars []int) []int {
+	transferCardsToBoard()
+	fmt.Println("=============================")
 	for _, pos := range destorys {
-
+		for _, starPos := range stars {
+			test[pos-1] = -1
+			if pos == starPos {
+				test[pos-1] = 100
+				break
+			}
+		}
 	}
+	transferCardsToBoard()
+	fmt.Println("===================================")
+	test = deleteDestoryCards()
+	transferCardsToBoard()
+	fmt.Println("Num of list", len(test))
+	return test
+}
+
+func deleteDestoryCards() []int {
+	res := []int{}
+	for _, v := range test {
+		if v != -1 {
+			res = append(res, v)
+		}
+	}
+	return res
 }

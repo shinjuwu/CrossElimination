@@ -21,9 +21,9 @@ func Test_transferCardsToBoard(t *testing.T) {
 
 func Test_triggerPoint(t *testing.T) {
 	type args struct {
-		ca cardPos
+		ca node
 	}
-	ca := cardPos{
+	ca := node{
 		posX: 0,
 		posY: 0,
 	}
@@ -44,7 +44,7 @@ func Test_triggerPoint(t *testing.T) {
 func Test_scanBoard(t *testing.T) {
 	tests := []struct {
 		name string
-		want [][]cardPos
+		want [][]node
 	}{
 		// TODO: Add test cases.
 		{"case1", nil},
@@ -53,6 +53,42 @@ func Test_scanBoard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := scanBoard(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("scanBoard() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_elimination(t *testing.T) {
+	tests := []struct {
+		name string
+	}{
+		// TODO: Add test cases.
+		{"case1"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			elimination()
+		})
+	}
+}
+
+func Test_updateBordList(t *testing.T) {
+	type args struct {
+		destorys []int
+		stars    []int
+	}
+	tests := []struct {
+		name string
+		args args
+		want []int
+	}{
+		// TODO: Add test cases.
+		{"case1", args{[]int{21, 22, 23, 15, 14, 13}, []int{22, 14}}, nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := updateBordList(tt.args.destorys, tt.args.stars); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("updateBordList() = %v, want %v", got, tt.want)
 			}
 		})
 	}
