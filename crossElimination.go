@@ -1,14 +1,13 @@
 package elimination
 
 import (
-	"container/list"
 	"fmt"
 )
 
 //EliminationTask is used to illustract a Elimination game eliminate task
 type EliminationTask struct {
 	board [5][5]int
-	cards *list.List
+	cards []int
 }
 
 type node struct {
@@ -41,7 +40,7 @@ var destoryCard = []int{}
 //var matchCard int
 
 //New is use for create a elimination task
-func New(initCards *list.List) *EliminationTask {
+func New(initCards []int) *EliminationTask {
 	et := &EliminationTask{
 		board: [5][5]int{},
 		cards: initCards,
@@ -247,12 +246,28 @@ func deleteDestoryCards() []int {
 	return res
 }
 
-func getStarDestoryCards(card node) []int {
+func getStarDestoryCards(star node) []int {
 	res := []int{}
 	for i := 0; i < len(directArrays); i++ {
 		direct := directArrays[i]
-		nextCardPatternNum := gamePattern[card.posX+direct[0]][card.posY+direct[1]]
-		res = append(res, nextCardPatternNum)
+		nextCard := node{
+			symbol: 100,
+			posX:   star.posX + direct[0],
+			posY:   star.posY + direct[1],
+		}
+		if isinBoard(nextCard) {
+			nextCardPatternNum := gamePattern[nextCard.posX][nextCard.posY]
+			res = append(res, nextCardPatternNum)
+		}
+
 	}
 	return res
+}
+
+func isinBoard(card node) bool {
+	if card.posX < 0 || card.posX == len(board) ||
+		card.posY < 0 || card.posY == len(board[0]) {
+		return false
+	}
+	return true
 }
